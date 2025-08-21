@@ -1,4 +1,29 @@
-📌 GeminiChatAPI
+## 👨‍💻 Sobre mí  
+
+Hola, soy **Nicolás Torres**, apasionado por el mundo de los **datos, la automatización y la inteligencia artificial aplicada a los negocios**.  
+
+Actualmente trabajo como **Business Intelligence / Data Engineer**, donde utilizo principalmente:  
+- 🐍 **Python** para análisis, automatización y modelado.  
+- 📊 **Power BI** para la creación de tableros y visualizaciones interactivas.  
+- 🗄️ **SQL** para la gestión, modelado y optimización de bases de datos.  
+- ⚙️ Herramientas de automatización como **AppSheet** y **Power Automate**, enfocadas en optimizar procesos empresariales.  
+- 🛡️ Experiencia en **gobernanza de datos**, asegurando calidad, integridad y seguridad de la información.  
+
+### 🚀 Mi aspiración profesional  
+Convertirme en un **programador avanzado en Inteligencia Artificial**, capaz de:  
+- Integrar modelos y herramientas inteligentes.  
+- Simplificar procesos complejos mediante IA.  
+- Impulsar a las compañías hacia el **éxito empresarial basado en datos**.  
+
+Me considero un **aprendiz constante**, siempre explorando nuevas tecnologías y enfoques.  
+Las **analogías y ejemplos prácticos** son mis aliados para comprender y explicar cómo la programación puede transformar los datos en valor real.  
+
+📌 Este repositorio es parte de mi camino para **compartir, aprender y crear soluciones en el mundo de la IA aplicada a datos**.  
+Es una iniciativa abierta para **desarrollar y colaborar con otras personas y organizaciones** interesadas en potenciar sus capacidades con datos e inteligencia artificial.  
+
+-------------------------------------------------------------------------
+
+📌 **GeminiChatAPI**
 
 Clase en Google Apps Script para gestionar conversaciones con la API de
 Gemini de Google.
@@ -176,3 +201,4 @@ Puedes controlar la configuración de generación y seguridad:
 
 Este código se distribuye bajo licencia MIT.
 Puedes modificarlo y adaptarlo libremente en tus proyectos.
+
