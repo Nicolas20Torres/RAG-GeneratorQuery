@@ -175,4 +175,4 @@ Puedes controlar la configuración de generación y seguridad:
 📜 Licencia
 
 Este código se distribuye bajo licencia MIT.
-Puedes modificarlo y adaptarlo libremente en tus pr
+Puedes modificarlo y adaptarlo libremente en tus proyectos.
