@@ -29,10 +29,8 @@ class GeminiChatAPI {
 
         this.model = modelName;
         this.apiKey = apiKey;
-        // El apiEndpoint ahora es la base, el modelo y la acción se añadirán después
         this.apiEndpoint = apiEndpoint; 
         this.propertiesService = propertiesServiceInstance || PropertiesService.getUserProperties();
-        // Cambiamos la clave para reflejar que es para Gemini
         this._CONTEXT_PROPERTY_KEY = 'GEMINI_CHAT_CONTEXT';
 
         this.messages = [];
@@ -45,11 +43,7 @@ class GeminiChatAPI {
         // Los mensajes de sistema se manejan mejor como el primer mensaje del rol "user" o
         // como parte de la configuración `generationConfig` o `safetySettings`
         // o, si es un mensaje de comportamiento, como parte del primer mensaje "user" en el prompt.
-        // Para mantener la modularidad, lo añadiremos como el primer mensaje del rol "user" si el historial está vacío.
-        // Podrías considerar pasarlo como un ajuste en `generationConfig` si Gemini lo soportara así para System.
         if (this.messages.length === 0 && initialSystemMessage) {
-            // Ajustamos a la estructura de Gemini: un mensaje con rol 'user'
-            // y el mensaje del sistema como su 'text'
             this.addMessage("user", initialSystemMessage);
             this._saveContext(); 
         }
@@ -109,7 +103,6 @@ class GeminiChatAPI {
         let parts = [];
 
         if (role === 'user') {
-            // Esta parte se mantiene igual para los mensajes de texto del usuario.
             if (typeof content === 'string') {
                 parts.push({ text: content });
             } else {
@@ -118,7 +111,6 @@ class GeminiChatAPI {
             }
 
         } else if (role === 'model') {
-            // Esta parte se mantiene igual para las respuestas y sugerencias del modelo.
             if (typeof content === 'string') {
                 parts.push({ text: content });
             } else if (content.tool_calls && Array.isArray(content.tool_calls)) {
@@ -134,14 +126,8 @@ class GeminiChatAPI {
                 Logger.warning(`Contenido de modelo inesperado: ${JSON.stringify(content)}`);
                 parts.push({ text: JSON.stringify(content) }); // fallback
             }
-
-        /* ========================= INICIO DEL CAMBIO ========================= */
         
         } else if (role === 'tool') {
-            // ✨ NUEVO BLOQUE: Aquí manejamos específicamente la respuesta de la herramienta.
-            // 'content' que llega aquí es el objeto que creamos en la función principal:
-            // { functionResponse: { name: 'getFilteredData', response: '...' } }
-
             if (content.functionResponse && content.functionResponse.name) {
                 parts.push({
                     functionResponse: {
@@ -158,10 +144,7 @@ class GeminiChatAPI {
                 Logger.warning(`Contenido de herramienta con formato incorrecto: ${JSON.stringify(content)}`);
             }
 
-        /* ========================== FIN DEL CAMBIO ========================== */
-
         } else {
-            // Este bloque ahora solo se activará si llega un rol verdaderamente inesperado.
             Logger.warning(`Rol desconocido: "${role}". Usando "user" por defecto para Gemini.`);
             role = 'user';
             parts.push({ text: typeof content === 'string' ? content : JSON.stringify(content) });
@@ -270,33 +253,18 @@ class GeminiChatAPI {
         if (options.safetySettings) {
             payload.safetySettings = options.safetySettings;
         }
-
-        // --- ¡¡¡ESTA ES LA PARTE CRÍTICA PARA LAS HERRAMIENTAS!!! ---
-        // Añadir la DECLARACIÓN de las herramientas al payload.
-        // Asumimos que `this.tools` ya es el objeto { "functionDeclarations": [...] }
-        // si lo guardaste así en setTools, o la estructura que la API espera.
-        // Si tu `setTools` guardó un array de herramientas, por ejemplo:
-        // `setTools(newTools)` donde `newTools` es `[{ functionDeclarations: [...] }]`
-        // entonces deberías accederlo como `this.tools[0]`.
         
-        // **Ajusta esta lógica según la estructura EXACTA de `this.tools`**
         if (this.tools && this.tools.functionDeclarations && Array.isArray(this.tools.functionDeclarations) && this.tools.functionDeclarations.length > 0) {
-            payload.tools = this.tools; // Si this.tools ya es { "functionDeclarations": [...] }
+            payload.tools = this.tools; 
             Logger.log("DEBUG: Herramientas añadidas al payload.");
         } else if (this.tools && Array.isArray(this.tools) && this.tools.length > 0 && this.tools[0].functionDeclarations) {
-            // Esto cubre el caso si `this.tools` es un array como `[{ functionDeclarations: [...] }]`
             payload.tools = this.tools[0];
             Logger.log("DEBUG: Herramientas añadidas al payload (formato array).");
         }
         else {
             Logger.log("ADVERTENCIA CRÍTICA: Las definiciones de herramientas (payload.tools) no se pudieron añadir correctamente. Formato de this.tools: " + JSON.stringify(this.tools));
         }
-        // --- FIN DE LA PARTE CRÍTICA PARA LAS HERRAMIENTAS ---
 
-
-        // --- ¡¡¡ESTA ES LA PARTE CRÍTICA PARA FORZAR LAS LLAMADAS A HERRAMIENTAS!!! ---
-        // Añadir la CONFIGURACIÓN DE HERRAMIENTAS (toolConfig) al payload.
-        // Esto es lo que fuerza al modelo a generar functionCalls.
         if (options.toolConfig) {
             payload.toolConfig = options.toolConfig;
             Logger.log("DEBUG: toolConfig añadido al payload.");
@@ -304,7 +272,6 @@ class GeminiChatAPI {
 
             Logger.log("ADVERTENCIA CRÍTICA: toolConfig no está presente en las opciones para el payload. No se forzará el uso de herramientas.");
         }
-        // --- FIN DE LA PARTE CRÍTICA PARA FORZAR LAS LLAMADAS A HERRAMIENTAS ---
         
         return JSON.stringify(payload);
     }
@@ -318,20 +285,12 @@ class GeminiChatAPI {
    */
   sendMessage(apiOptions = {}) {
       const fullApiUrl = `${this.apiEndpoint}${this.model}:generateContent?key=${this.apiKey}`;
-
-      // Creamos un objeto para contener TODAS las opciones que irán al payload.
-      // Esto asegura que generationConfig y safetySettings estén en el lugar correcto.
       const payloadOptions = {};
-
-      // 1. Manejar generationConfig (incluyendo temperature)
       if (apiOptions.temperature !== undefined) {
           payloadOptions.generationConfig = {
               temperature: apiOptions.temperature
           };
       } else {
-          // Asegúrate de que siempre haya un generationConfig si se pasan otras propiedades
-          // O si quieres un default temperature cuando no se especifica.
-          // Por ejemplo, si apiOptions.temperature no existe, puedes definir un default:
           payloadOptions.generationConfig = {
               temperature: 0.1 // Default si no se pasa uno
           };
@@ -340,20 +299,9 @@ class GeminiChatAPI {
       if (apiOptions.tool_config !== undefined) {
           payloadOptions.toolConfig = apiOptions.tool_config;
       }    
-
-      // Aquí puedes añadir otros parámetros de generationConfig si los necesitas,
-      // por ejemplo:
-      // if (apiOptions.maxOutputTokens !== undefined) {
-      //     payloadOptions.generationConfig.maxOutputTokens = apiOptions.maxOutputTokens;
-      // }
-
-
-      // 2. Manejar safetySettings si existen
       if (apiOptions.safetySettings !== undefined) {
           payloadOptions.safetySettings = apiOptions.safetySettings;
       }
-
-      // 3. Pasar el objeto payloadOptions ya estructurado a _buildPayload
       const requestPayload = this._buildPayload(payloadOptions);
 
       Logger.log("Payload enviado a la API:\n" + JSON.stringify(JSON.parse(requestPayload), null, 2));
