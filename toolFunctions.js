@@ -2,7 +2,7 @@
  * Diccionario con la definición de funciones para Gemini (versión 2).
  * Ejemplo con varias herramientas que cubren distintos casos de uso.
  */
-function toolFunctions() {
+function toolFunctionsV2() {
   const myTools = [
     {
       "functionDeclarations": [
